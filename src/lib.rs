@@ -78,6 +78,7 @@ impl BoardView {
     }
 
     pub fn resize(&mut self, new_size: PhysicalSize<u32>) {
+        log::info!("resizing to {:?}", new_size);
         self.size = new_size;
         self.sc_desc.width = new_size.width.max(1);
         self.sc_desc.height = new_size.height.max(1);

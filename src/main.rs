@@ -2,6 +2,7 @@ use winit::{
     event::{ElementState, Event, KeyboardInput, VirtualKeyCode, WindowEvent},
     event_loop::{ControlFlow, EventLoop},
     window::WindowBuilder,
+    dpi::PhysicalSize,
 };
 
 use chessboard_rs::BoardView;
@@ -11,7 +12,10 @@ async fn main() -> anyhow::Result<()> {
     env_logger::init();
 
     let event_loop = EventLoop::new();
-    let window = WindowBuilder::new().build(&event_loop)?;
+    let window = WindowBuilder::new()
+        .with_inner_size(PhysicalSize::new(400, 400))
+        .with_resizable(false)
+        .build(&event_loop)?;
 
     let mut board_view = BoardView::create(&window).await;
 
