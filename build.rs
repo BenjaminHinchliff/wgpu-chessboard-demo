@@ -40,7 +40,7 @@ fn main() -> Result<()> {
         .context("Unable to create shader glob")?
         .compile_matcher();
     let mut compiler = shaderc::Compiler::new().context("Unable to create shader compiler")?;
-    for file in fs::read_dir("src/").context("shader directory doesn't exist")? {
+    for file in fs::read_dir("src/shaders/").context("shader directory doesn't exist")? {
         let path = file?.path();
         if shader_glob.is_match(&path) {
             let ShaderData {

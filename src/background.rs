@@ -14,8 +14,8 @@ pub struct Background {
 
 impl Background {
     pub fn new(device: &wgpu::Device, sc_desc: &wgpu::SwapChainDescriptor) -> Background {
-        let quad_vert = device.create_shader_module(&wgpu::include_spirv!("quad.vert.spv"));
-        let quad_frag = device.create_shader_module(&wgpu::include_spirv!("board.frag.spv"));
+        let quad_vert = device.create_shader_module(&wgpu::include_spirv!("shaders/quad.vert.spv"));
+        let quad_frag = device.create_shader_module(&wgpu::include_spirv!("shaders/board.frag.spv"));
 
         let pipeline_layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
             label: Some("Quad Render Pipeline Layout"),
