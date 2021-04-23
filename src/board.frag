@@ -5,7 +5,7 @@ layout(location = 0) in vec2 v_texcoord;
 layout(location = 0) out vec4 f_color;
 
 const float SIZE = 8.0;
-const vec3 foreground = vec3(0.71, 0.53, 0.39);
+const vec3 foreground = vec3(0.6, 0.4, 0.2);
 const vec3 background = vec3(0.94, 0.85, 0.71);
 
 float toBoardCoord(in float coord) {

@@ -9,7 +9,9 @@ use piece::Piece;
 mod renderable;
 
 mod quad;
-use quad::Quad;
+
+mod background;
+use background::Background;
 
 type Board = [[Option<Piece>; 8]; 8];
 
@@ -21,7 +23,7 @@ pub struct BoardView {
     sc_desc: wgpu::SwapChainDescriptor,
     swap_chain: wgpu::SwapChain,
     size: PhysicalSize<u32>,
-    background: Quad,
+    background: Background,
 }
 
 impl BoardView {
@@ -59,7 +61,7 @@ impl BoardView {
         };
         let swap_chain = device.create_swap_chain(&surface, &sc_desc);
 
-        let background = Quad::new(&device, &sc_desc);
+        let background = Background::new(&device, &sc_desc);
 
         Self {
             board: [[None; 8]; 8],
