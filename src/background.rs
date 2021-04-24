@@ -1,8 +1,8 @@
 use wgpu::util::DeviceExt;
 
 use crate::{
+    quad::{INDICES, LAYOUT, VERTICES},
     renderable::Renderable,
-    quad::{VERTICES, LAYOUT, INDICES},
 };
 
 pub struct Background {
@@ -14,8 +14,24 @@ pub struct Background {
 
 impl Background {
     pub fn new(device: &wgpu::Device, sc_desc: &wgpu::SwapChainDescriptor) -> Background {
-        let quad_vert = device.create_shader_module(&wgpu::include_spirv!("shaders/quad.vert.spv"));
-        let quad_frag = device.create_shader_module(&wgpu::include_spirv!("shaders/board.frag.spv"));
+        let quad_vert =
+            device.create_shader_module(&wgpu::include_spirv!("shaders/board.vert.spv"));
+        let quad_frag =
+            device.create_shader_module(&wgpu::include_spirv!("shaders/board.frag.spv"));
+
+        let vert_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+            label: Some("Vertex Buffer"),
+            contents: bytemuck::cast_slice(VERTICES),
+            usage: wgpu::BufferUsage::VERTEX,
+        });
+
+        let idx_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+            label: Some("Index Buffer"),
+            contents: bytemuck::cast_slice(INDICES),
+            usage: wgpu::BufferUsage::INDEX,
+        });
+
+        let idx_num = INDICES.len() as u32;
 
         let pipeline_layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
             label: Some("Quad Render Pipeline Layout"),
@@ -55,20 +71,6 @@ impl Background {
                 alpha_to_coverage_enabled: false,
             },
         });
-
-        let vert_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
-            label: Some("Vertex Buffer"),
-            contents: bytemuck::cast_slice(VERTICES),
-            usage: wgpu::BufferUsage::VERTEX,
-        });
-
-        let idx_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
-            label: Some("Index Buffer"),
-            contents: bytemuck::cast_slice(INDICES),
-            usage: wgpu::BufferUsage::INDEX,
-        });
-
-        let idx_num = INDICES.len() as u32;
 
         Background {
             pipeline,
