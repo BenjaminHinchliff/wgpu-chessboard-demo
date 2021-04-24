@@ -13,6 +13,9 @@ mod quad;
 mod background;
 use background::Background;
 
+mod pieces;
+use pieces::PiecesView;
+
 type Board = [[Option<Piece>; 8]; 8];
 
 pub struct BoardView {
@@ -24,6 +27,7 @@ pub struct BoardView {
     swap_chain: wgpu::SwapChain,
     size: PhysicalSize<u32>,
     background: Background,
+    pieces_view: PiecesView, 
 }
 
 impl BoardView {
@@ -63,6 +67,8 @@ impl BoardView {
 
         let background = Background::new(&device, &sc_desc);
 
+        let pieces_view = PiecesView::new(&device, &queue, &sc_desc);
+
         Self {
             board: [[None; 8]; 8],
             surface,
@@ -72,6 +78,7 @@ impl BoardView {
             swap_chain,
             size,
             background,
+            pieces_view,
         }
     }
 
@@ -117,6 +124,8 @@ impl BoardView {
         }
 
         self.background.render(&mut encoder, &frame);
+
+        self.pieces_view.render(&mut encoder, &frame);
 
         self.queue.submit(iter::once(encoder.finish()));
 
