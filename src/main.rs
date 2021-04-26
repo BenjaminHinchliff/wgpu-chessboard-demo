@@ -1,4 +1,3 @@
-use anyhow::Context;
 use image::GenericImageView;
 use winit::{
     dpi::PhysicalSize,
@@ -28,6 +27,7 @@ async fn main() -> anyhow::Result<()> {
 
     let board = board::default_board();
     let mut board_view = BoardView::create(&window).await;
+    let mut square_size = None;
 
     event_loop.run(move |event, _, control_flow| match event {
         Event::WindowEvent {
@@ -43,18 +43,28 @@ async fn main() -> anyhow::Result<()> {
                 } => *control_flow = ControlFlow::Exit,
                 _ => {}
             },
-            WindowEvent::Resized(physical_size) => board_view.resize(*physical_size),
+            WindowEvent::Resized(physical_size) => {
+                square_size = Some(board_view.resize(*physical_size));
+            }
             WindowEvent::ScaleFactorChanged { new_inner_size, .. } => {
-                board_view.resize(**new_inner_size)
+                square_size = Some(board_view.resize(**new_inner_size));
             }
             _ => {}
         },
-        Event::RedrawRequested(_) => match board_view.render(&board) {
-            Ok(_) => {}
-            Err(wgpu::SwapChainError::Lost) => board_view.resize(board_view.size()),
-            Err(wgpu::SwapChainError::OutOfMemory) => *control_flow = ControlFlow::Exit,
-            Err(e) => eprintln!("{:?}", e),
-        },
+        Event::RedrawRequested(_) => {
+            if let Some(square_inner) = square_size {
+                window.set_inner_size(square_inner);
+                square_size = None;
+            }
+            match board_view.render(&board) {
+                Ok(_) => {}
+                Err(wgpu::SwapChainError::Lost) => {
+                    board_view.resize(board_view.size());
+                }
+                Err(wgpu::SwapChainError::OutOfMemory) => *control_flow = ControlFlow::Exit,
+                Err(e) => eprintln!("{:?}", e),
+            }
+        }
         _ => {}
     });
 }

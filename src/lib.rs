@@ -84,12 +84,15 @@ impl BoardView {
         return self.size;
     }
 
-    pub fn resize(&mut self, new_size: PhysicalSize<u32>) {
-        log::info!("resizing to {:?}", new_size);
+    /// resizes the wgpu context to the given size, converted to a square, returns the new dimensions
+    pub fn resize(&mut self, new_size: PhysicalSize<u32>) -> PhysicalSize<u32> {
+        let square_size = new_size.width.max(new_size.height).max(1);
+        log::info!("resizing to {:?} with square size {}", new_size, square_size);
         self.size = new_size;
-        self.sc_desc.width = new_size.width.max(1);
-        self.sc_desc.height = new_size.height.max(1);
+        self.sc_desc.width = square_size;
+        self.sc_desc.height = square_size;
         self.swap_chain = self.device.create_swap_chain(&self.surface, &self.sc_desc);
+        PhysicalSize::new(square_size, square_size)
     }
 
     pub fn render(&mut self, board: &Board) -> Result<(), wgpu::SwapChainError> {
