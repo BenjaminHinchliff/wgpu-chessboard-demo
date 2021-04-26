@@ -1,16 +1,23 @@
+use std::ops::Range;
+
 use image::GenericImageView;
 use wgpu::util::DeviceExt;
 
 use crate::{
+    piece::PieceRaw,
     quad::{INDICES, LAYOUT, VERTICES},
     renderable::Renderable,
+    Board,
 };
+
+type PiecesBuffer = [PieceRaw; 64];
 
 pub struct PiecesView {
     pipeline: wgpu::RenderPipeline,
     vert_buffer: wgpu::Buffer,
     idx_buffer: wgpu::Buffer,
-    idx_num: u32,
+    piece_buffer: wgpu::Buffer,
+    indices: Range<u32>,
     texture_bind_group: wgpu::BindGroup,
 }
 
@@ -37,9 +44,17 @@ impl PiecesView {
             usage: wgpu::BufferUsage::INDEX,
         });
 
-        let idx_num = INDICES.len() as u32;
+        let indices = 0..INDICES.len() as u32;
 
-        let mut texture_image = image::load_from_memory(include_bytes!("images/pieces.png")).unwrap();
+        let piece_buffer = device.create_buffer(&wgpu::BufferDescriptor {
+            label: Some("Piece Pieces Buffer"),
+            size: std::mem::size_of::<PiecesBuffer>() as wgpu::BufferAddress,
+            usage: wgpu::BufferUsage::VERTEX | wgpu::BufferUsage::COPY_DST,
+            mapped_at_creation: false,
+        });
+
+        let mut texture_image =
+            image::load_from_memory(include_bytes!("images/pieces.png")).unwrap();
         image::imageops::flip_vertical_in_place(&mut texture_image);
         let texture_rgba = texture_image.as_rgba8().unwrap();
         let dimensions = texture_image.dimensions();
@@ -140,7 +155,7 @@ impl PiecesView {
             vertex: wgpu::VertexState {
                 module: &quad_vert,
                 entry_point: "main",
-                buffers: &[LAYOUT],
+                buffers: &[LAYOUT, PieceRaw::desc()],
             },
             fragment: Some(wgpu::FragmentState {
                 module: &quad_frag,
@@ -179,14 +194,30 @@ impl PiecesView {
             pipeline,
             vert_buffer,
             idx_buffer,
-            idx_num,
+            piece_buffer,
+            indices,
             texture_bind_group,
         }
     }
 }
 
 impl Renderable for PiecesView {
-    fn render(&self, encoder: &mut wgpu::CommandEncoder, frame: &wgpu::SwapChainTexture) {
+    fn render(
+        &self,
+        encoder: &mut wgpu::CommandEncoder,
+        queue: &mut wgpu::Queue,
+        frame: &wgpu::SwapChainTexture,
+        board: &Board,
+    ) {
+        let mut pieces = Vec::new();
+        for (y, row) in board.iter().rev().enumerate() {
+            for (x, piece) in row.iter().enumerate() {
+                if let Some(piece) = piece {
+                    pieces.push(piece.to_raw(x, y));
+                }
+            }
+        }
+        queue.write_buffer(&self.piece_buffer, 0, bytemuck::cast_slice(&pieces));
         let mut render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
             label: Some("Pieces Render Pass"),
             color_attachments: &[wgpu::RenderPassColorAttachmentDescriptor {
@@ -202,7 +233,8 @@ impl Renderable for PiecesView {
         render_pass.set_pipeline(&self.pipeline);
         render_pass.set_bind_group(0, &self.texture_bind_group, &[]);
         render_pass.set_vertex_buffer(0, self.vert_buffer.slice(..));
+        render_pass.set_vertex_buffer(1, self.piece_buffer.slice(..));
         render_pass.set_index_buffer(self.idx_buffer.slice(..), wgpu::IndexFormat::Uint16);
-        render_pass.draw_indexed(0..self.idx_num, 0, 0..1);
+        render_pass.draw_indexed(self.indices.clone(), 0, 0..pieces.len() as u32);
     }
 }

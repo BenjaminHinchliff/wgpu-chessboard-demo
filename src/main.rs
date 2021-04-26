@@ -1,8 +1,8 @@
 use winit::{
+    dpi::PhysicalSize,
     event::{ElementState, Event, KeyboardInput, VirtualKeyCode, WindowEvent},
     event_loop::{ControlFlow, EventLoop},
     window::WindowBuilder,
-    dpi::PhysicalSize,
 };
 
 use chessboard_rs::BoardView;
@@ -13,6 +13,7 @@ async fn main() -> anyhow::Result<()> {
 
     let event_loop = EventLoop::new();
     let window = WindowBuilder::new()
+        .with_title("Chess Board")
         .with_inner_size(PhysicalSize::new(400, 400))
         .build(&event_loop)?;
 

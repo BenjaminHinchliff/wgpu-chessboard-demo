@@ -4,7 +4,6 @@ use renderable::Renderable;
 use winit::{dpi::PhysicalSize, window::Window};
 
 mod piece;
-use piece::Piece;
 
 mod renderable;
 
@@ -16,7 +15,8 @@ use background::Background;
 mod pieces;
 use pieces::PiecesView;
 
-type Board = [[Option<Piece>; 8]; 8];
+mod board;
+use board::Board;
 
 pub struct BoardView {
     pub board: Board,
@@ -70,7 +70,7 @@ impl BoardView {
         let pieces_view = PiecesView::new(&device, &queue, &sc_desc);
 
         Self {
-            board: [[None; 8]; 8],
+            board: board::default_board(),
             surface,
             device,
             queue,
@@ -123,9 +123,9 @@ impl BoardView {
             });
         }
 
-        self.background.render(&mut encoder, &frame);
+        self.background.render(&mut encoder, &mut self.queue, &frame, &self.board);
 
-        self.pieces_view.render(&mut encoder, &frame);
+        self.pieces_view.render(&mut encoder, &mut self.queue, &frame, &self.board);
 
         self.queue.submit(iter::once(encoder.finish()));
 

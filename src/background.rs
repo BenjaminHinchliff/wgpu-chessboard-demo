@@ -1,6 +1,7 @@
 use wgpu::util::DeviceExt;
 
 use crate::{
+    board::Board,
     quad::{INDICES, LAYOUT, VERTICES},
     renderable::Renderable,
 };
@@ -82,7 +83,13 @@ impl Background {
 }
 
 impl Renderable for Background {
-    fn render(&self, encoder: &mut wgpu::CommandEncoder, frame: &wgpu::SwapChainTexture) {
+    fn render(
+        &self,
+        encoder: &mut wgpu::CommandEncoder,
+        _queue: &mut wgpu::Queue,
+        frame: &wgpu::SwapChainTexture,
+        _board: &Board,
+    ) {
         let mut render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
             label: Some("Render Pass"),
             color_attachments: &[wgpu::RenderPassColorAttachmentDescriptor {
