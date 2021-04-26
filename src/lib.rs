@@ -15,11 +15,10 @@ use background::Background;
 mod pieces;
 use pieces::PiecesView;
 
-mod board;
+pub mod board;
 use board::Board;
 
 pub struct BoardView {
-    pub board: Board,
     surface: wgpu::Surface,
     device: wgpu::Device,
     queue: wgpu::Queue,
@@ -70,7 +69,6 @@ impl BoardView {
         let pieces_view = PiecesView::new(&device, &queue, &sc_desc);
 
         Self {
-            board: board::default_board(),
             surface,
             device,
             queue,
@@ -94,7 +92,7 @@ impl BoardView {
         self.swap_chain = self.device.create_swap_chain(&self.surface, &self.sc_desc);
     }
 
-    pub fn render(&mut self) -> Result<(), wgpu::SwapChainError> {
+    pub fn render(&mut self, board: &Board) -> Result<(), wgpu::SwapChainError> {
         let frame = self.swap_chain.get_current_frame()?.output;
 
         let mut encoder = self
@@ -123,9 +121,9 @@ impl BoardView {
             });
         }
 
-        self.background.render(&mut encoder, &mut self.queue, &frame, &self.board);
+        self.background.render(&mut encoder, &mut self.queue, &frame, &board);
 
-        self.pieces_view.render(&mut encoder, &mut self.queue, &frame, &self.board);
+        self.pieces_view.render(&mut encoder, &mut self.queue, &frame, &board);
 
         self.queue.submit(iter::once(encoder.finish()));
 
