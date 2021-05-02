@@ -22,7 +22,8 @@ async fn main() -> anyhow::Result<()> {
     let window = WindowBuilder::new()
         .with_title("Chess Board")
         .with_window_icon(Some(icon))
-        .with_inner_size(PhysicalSize::new(400, 400))
+        .with_inner_size(PhysicalSize::new(600, 600))
+        .with_resizable(false)
         .build(&event_loop)?;
 
     let board = board::default_board();
